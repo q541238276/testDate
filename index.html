@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>日历</title>
+		<script src="jquery-1.11.3.min.js" type="text/javascript" charset="utf-8"></script>
+		<style type="text/css">
+			body{
+				margin: 0;
+				padding: 0;
+				font-family: "微软雅黑";
+			}
+			.date_max{
+				width: 420px;
+				margin: 100px auto;
+			}
+			.date_main span,.date_week span{
+				display: inline-block;
+				width: 60px;
+				height: 60px;
+				text-align: center;
+				line-height: 60px;
+				border: 1px solid #999999;
+				box-sizing: border-box;
+			}
+			.today{
+				background: yellow;
+				color: red;
+				font-weight: bold;
+			}
+			.date_tool{
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+			.date_week{
+				display: flex;
+				justify-content: flex-start;
+				align-items: center;
+			}
+			.date_tool{
+				border: 1px solid #999999;
+				height: 80px;
+			}
+			.date_prev,.date_next{
+				width: 40px;
+				height: 40px;
+				text-align: center;
+				line-height: 40px;
+				font-size: 20px;
+				border: 1px solid #999;
+			}
+			.date_center{
+				margin: 0 40px;
+			}
+			.date_max span,.date_tool div{
+				cursor: pointer;
+			}
+			.date_main .date_nomal:hover{
+				background: yellow;
+				color: red;
+				font-weight: bold;
+			}
+			.date_prev:hover,.date_next:hover{
+				color: white;;
+				background: chartreuse;
+			}
+			.tool_active{
+				background: yellow;
+				color: red;
+			}
+			.date_center span:hover{
+				background: yellow;
+				color: red;
+			}
+			.date_disable{
+				background: #AAAAAA;
+			}
+			.date_main .today:hover{
+				background: blue;
+				color: white;
+				font-weight: normal;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="date_max">
+			<div class="date_tool">
+				<div class="date_prev" id="date_prev">
+					<
+				</div>
+				<div class="date_center">
+					<span id="date_year"></span>
+					<span id="date_month" class="tool_active"></span>
+					<span id="date_date"></span>
+				</div>
+				<div class="date_next" id="date_next">
+					>
+				</div>
+			</div>
+			<div class="date_week">
+				<span>星期一</span>
+				<span>星期二</span>
+				<span>星期三</span>
+				<span>星期四</span>
+				<span>星期五</span>
+				<span>星期六</span>
+				<span>星期日</span>
+			</div>
+			<div class="date_main">
+				
+			</div>
+		</div>
+		<script type="text/javascript">
+			function dateFn(selectType){
+				var that=this;
+				this.selectType=selectType;
+				this.getDatByTime=function(time){
+				  var week; 
+			      if(time.getDay() == 0) week = "星期日" 
+			      if(time.getDay() == 1) week = "星期一" 
+			      if(time.getDay() == 2) week = "星期二" 
+			      if(time.getDay() == 3) week = "星期三" 
+			      if(time.getDay() == 4) week = "星期四" 
+			      if(time.getDay() == 5) week = "星期五" 
+			      if(time.getDay() == 6) week = "星期六"
+			      return week
+				}
+				this.time_toLocaleString=function(time){//基础数据
+			      time = new Date(time);
+			      var moth = (time.getMonth() + 1) > 9 ? (time.getMonth() + 1) : "0" + (time.getMonth() + 1);
+			      var date = time.getDate() > 9 ? time.getDate() : "0" + time.getDate();
+			      var hours = time.getHours() > 9 ? time.getHours() : "0" + time.getHours();
+			      var minutes = time.getMinutes() > 9 ? time.getMinutes() : "0" + time.getMinutes();
+			      var seconds = time.getSeconds() > 9 ? time.getSeconds() : "0" + time.getSeconds();
+			      var week=that.getDatByTime(time);
+			      var d = new Date(time.getFullYear(), moth, 0);
+			      var firstTime=new Date(time.getFullYear()+"-" +moth+'-1');
+			      var firstDay=that.getDatByTime(firstTime)
+			      /*计算上月最大天数*/
+			      var pre=new Date(time.getFullYear(), moth-1, 0)
+			      if(moth-1==0){
+			      	pre=new Date(time.getFullYear()-1, 12, 0)
+			      }
+			      var obj={
+			      	year:time.getFullYear(),
+			      	moth:moth,
+			      	date:date,
+			      	hours:hours,
+			      	minutes:minutes,
+			      	seconds:seconds,
+			      	week:week,
+			      	dayCount:time.getDay(),
+			      	totalDate:d.getDate(),
+			      	firstDay:firstDay,
+			      	first_dayCount:firstTime.getDay(),
+			      	pre_totalDate:pre.getDate()
+			      }
+			      return obj;
+			    }
+				this.initDate=function(timer){//实现视图
+					if(!timer){
+						var time=new Date();
+						var timer=time.getTime();
+					}
+					that.timeArr=[timer];
+					var timeObj=that.time_toLocaleString(timer)
+					that.timeObj=timeObj;
+					var str='';
+					var first_dayCount=parseInt(timeObj.first_dayCount);//循环取出当月第一天的星期前的日期，空格站位
+					var pre_totalDate=timeObj.pre_totalDate;
+					if(first_dayCount==0){
+						first_dayCount=7
+					}
+					for(var i=0;i<first_dayCount;i++){
+						if(i+1!=first_dayCount){
+							str+="<span class='date_disable'>"+pre_totalDate--+"</span>"
+						}
+					}
+					var totalDate=timeObj.totalDate;//循环当月日期
+					for(var i=0;i<totalDate;i++){
+						if(i+1<totalDate+1){
+							if(i+1==timeObj.date){
+								str+="<span class='today date_nomal'>"+(i+1)+"</span>"
+								continue
+							}
+							str+="<span class='date_nomal'>"+(i+1)+"</span>"
+						}
+					}
+					var lastSpans=42-(first_dayCount+totalDate);
+					if(first_dayCount>0){
+						for(var i=0;i<lastSpans+1;i++){
+							str+="<span class='date_disable'>"+(i+1)+"</span>"
+						}
+					}else{
+						for(var i=0;i<lastSpans;i++){
+							str+="<span class='date_disable'>"+(i+1)+"</span>"
+						}
+					}
+					$("#date_year").html(timeObj.year+'年')
+					$("#date_month").html(timeObj.moth+'月')
+					$("#date_date").html(timeObj.date+'日')
+					$(".date_main").html(str);
+					document.getElementById('date_prev').addEventListener('click',that.goPre);
+					document.getElementById('date_next').addEventListener('click',that.goNext);
+					if(!that.initCount){
+						that.slectDate();
+						that.setType();
+					}
+				}
+				this.goPre=function(){
+					var type=$(".date_center").find('.tool_active').index()
+					var timeObj=that.timeObj;
+					var moth=parseInt(timeObj.moth);
+					var year=timeObj.year;
+					var mydate=timeObj.date;
+					if(type==0){
+						year--
+					}else if(type==1){
+						moth--
+						if(moth==0){
+							moth=12;
+							year--
+						}
+					}else{
+						mydate--
+						if(mydate==0){
+							moth--
+							mydate=timeObj.pre_totalDate
+						}
+						if(moth==0){
+							moth=12;
+							year--
+						}
+					}
+					var thisTime=new Date(year+"-" +moth+'-'+mydate);
+					var baseTime=new Date(1971-01-01);
+					if(thisTime.getTime()<baseTime.getTime()){
+						return
+					}
+					that.initDate(thisTime.getTime())
+				}
+				this.goNext=function(){
+					var type=$(".date_center").find('.tool_active').index()
+					var timeObj=that.timeObj;
+					var moth=parseInt(timeObj.moth);
+					var year=timeObj.year;
+					var mydate=timeObj.date;
+					if(type==0){
+						year++
+					}else if(type==1){
+						moth++
+						if(moth==13){
+							moth=1;
+							year++
+						}
+					}else{
+						mydate++
+						if(mydate==timeObj.totalDate+1){
+							moth++
+							mydate=1
+						}
+						if(moth==12){
+							moth=1;
+							year++
+						}
+					}
+					var thisTime=new Date(year+"-" +moth+'-'+mydate);
+					that.initDate(thisTime.getTime())
+				}
+				this.setType=function(){
+					that.initCount=1;
+					$(".date_center").find("span").click(function(){
+						var index=$(this).index();
+						var activeIndex=$(".date_center").find('.tool_active').index();
+						if(activeIndex==index){
+							return
+						}else{
+							$(".tool_active").removeClass('tool_active');
+							$(this).addClass("tool_active")
+						}
+					})
+				}
+				this.slectDate=function(){
+					$(".date_main").on('click',".date_nomal",function(){
+						var selectType=that.selectType;
+						var timeObj=that.timeObj;
+						var mydate=parseInt($(this).html());
+						var moth=parseInt(timeObj.moth);
+						var year=timeObj.year;
+						var thisTime=new Date(year+"-" +moth+'-'+mydate);
+						if(!selectType){
+							that.initDate(thisTime.getTime())
+						}else{
+							var classN=$(this).attr('class')
+							if(classN.indexOf('today')!=-1){
+								$(this).removeClass('today');
+								var index=that.timeArr.indexOf(thisTime.getTime());
+								that.timeArr.splice(index,1);
+								return
+							}
+							that.timeArr.push(thisTime.getTime());
+							$(this).addClass('today')
+						}
+					})
+				}
+				this.getTimeArr=function(){
+					return that.timeArr
+				}
+			}
+			var loadDate=new dateFn(1);
+			loadDate.initDate()
+		</script>
+	</body>
+</html>
